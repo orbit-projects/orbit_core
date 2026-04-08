@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "orbit-core"
+version = "0.1.0"
+description = "Core routing and dependency injection system for Orbit"
+readme = "README.md"
+requires-python = ">=3.11"
+
+authors = [
+    { name = "Pranav Manglik" }
+]
+
+license = { text = "MIT" }
+
+dependencies = [
+    "orbit-types>=0.1.0"
+]
+
+keywords = ["orbit", "core", "di", "routing"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+
+
+# 🔥 VERY IMPORTANT (package discovery)
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["orbit_core*"]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "ruff"
+]
