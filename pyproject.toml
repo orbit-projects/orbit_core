@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "orbit-core"
-version = "0.1.0"
+name = "orbit-framework-core"
+version = "0.1.2"
 description = "Core routing and dependency injection system for Orbit"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,19 +17,29 @@ authors = [
 license = { text = "MIT" }
 
 dependencies = [
-    "orbit-types>=0.1.0"
+    "orbit-framework-types>=0.1.0"
 ]
 
 keywords = ["orbit", "core", "di", "routing"]
 
 classifiers = [
+    "Development Status :: 3 - Alpha",
+
+    "Intended Audience :: Developers",
+
+    "License :: OSI Approved :: MIT License",
+
+    "Operating System :: OS Independent",
+
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
-    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.12",
+
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 
-
-# 🔥 VERY IMPORTANT (package discovery)
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["orbit_core*"]
