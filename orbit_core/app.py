@@ -1,8 +1,8 @@
 """
 Orbit Application Core
 
-This module provides the main `App` class used to create
-and configure Orbit applications.
+This module provides the main App class used to
+create and configure Orbit applications.
 
 The application core is responsible for:
 
@@ -19,15 +19,27 @@ Example:
         return {"message": "Hello Orbit"}
 """
 
+from __future__ import annotations
+
+import inspect
 from collections.abc import Callable
 from typing import Any
-import inspect
 
+from orbit_kit.typing import (
+    issubclass_safe,
+)
 from orbit_types import RequestModel
 
 from .container import Container
 from .routing import RouteRegistry
-from .types import RouteDefinition
+from .types import (
+    Middleware,
+    RouteDefinition,
+)
+
+__all__ = [
+    "App",
+]
 
 
 class App:
@@ -35,10 +47,10 @@ class App:
     Core application class for the Orbit framework.
 
     Responsibilities:
-    - Route registration
-    - Middleware management
-    - Application lifecycle coordination
-    - Dependency injection access
+        - Route registration
+        - Middleware management
+        - Application lifecycle coordination
+        - Dependency injection access
 
     Attributes:
         routes:
@@ -54,15 +66,36 @@ class App:
             Debug mode flag.
     """
 
-    def __init__(self, debug: bool = False):
+    def __init__(
+        self,
+        debug: bool = False,
+    ) -> None:
         """
-        Initialize a new Orbit application instance.
+        Initialize a new Orbit application.
+
+        Args:
+            debug:
+                Enable debug mode.
         """
 
         self.routes = RouteRegistry()
+
         self.container = Container()
-        self.middlewares: list[Callable[..., Any]] = []
+
+        self.middlewares: list[Middleware] = []
+
         self.debug = debug
+
+    @property
+    def route_count(self) -> int:
+        """
+        Retrieve the number of registered routes.
+
+        Returns:
+            Total registered route count.
+        """
+
+        return self.routes.route_count
 
     def route(
         self,
@@ -77,7 +110,8 @@ class App:
                 Route URL path.
 
             method:
-                HTTP method used for the route.
+                HTTP method associated with
+                the route.
 
         Returns:
             Route decorator.
@@ -86,27 +120,49 @@ class App:
         def decorator(
             func: Callable[..., Any],
         ) -> Callable[..., Any]:
-            sig = inspect.signature(func)
+            """
+            Route registration decorator.
+
+            Args:
+                func:
+                    Route handler function.
+
+            Returns:
+                Original handler function.
+            """
+
+            signature = inspect.signature(
+                func,
+            )
 
             request_model = None
-            response_model = sig.return_annotation
 
-            for param in sig.parameters.values():
+            response_model = (
+                None
+                if (signature.return_annotation is inspect.Signature.empty)
+                else signature.return_annotation
+            )
+
+            for parameter in signature.parameters.values():
                 if issubclass_safe(
-                    param.annotation,
+                    parameter.annotation,
                     RequestModel,
                 ):
-                    request_model = param.annotation
+                    request_model = parameter.annotation
 
-            route_def = RouteDefinition(
+                    break
+
+            route_definition = RouteDefinition(
                 path=path,
-                method=method,
+                method=method.upper(),
                 handler=func,
                 request_model=request_model,
                 response_model=response_model,
             )
 
-            self.routes.add_route(route_def)
+            self.routes.add_route(
+                route_definition,
+            )
 
             return func
 
@@ -118,6 +174,13 @@ class App:
     ) -> Callable[..., Any]:
         """
         Register a GET route.
+
+        Args:
+            path:
+                Route URL path.
+
+        Returns:
+            Route decorator.
         """
 
         return self.route(
@@ -131,6 +194,13 @@ class App:
     ) -> Callable[..., Any]:
         """
         Register a POST route.
+
+        Args:
+            path:
+                Route URL path.
+
+        Returns:
+            Route decorator.
         """
 
         return self.route(
@@ -144,6 +214,13 @@ class App:
     ) -> Callable[..., Any]:
         """
         Register a PUT route.
+
+        Args:
+            path:
+                Route URL path.
+
+        Returns:
+            Route decorator.
         """
 
         return self.route(
@@ -157,6 +234,13 @@ class App:
     ) -> Callable[..., Any]:
         """
         Register a DELETE route.
+
+        Args:
+            path:
+                Route URL path.
+
+        Returns:
+            Route decorator.
         """
 
         return self.route(
@@ -170,6 +254,13 @@ class App:
     ) -> Callable[..., Any]:
         """
         Register a PATCH route.
+
+        Args:
+            path:
+                Route URL path.
+
+        Returns:
+            Route decorator.
         """
 
         return self.route(
@@ -177,19 +268,21 @@ class App:
             method="PATCH",
         )
 
-    def get_routes(self) -> list[RouteDefinition]:
+    def get_routes(
+        self,
+    ) -> list[RouteDefinition]:
         """
         Retrieve all registered routes.
 
         Returns:
-            List of registered route definitions.
+            Copy of registered route definitions.
         """
 
         return self.routes.get_routes()
 
     def add_middleware(
         self,
-        middleware: Callable[..., Any],
+        middleware: Middleware,
     ) -> None:
         """
         Register application middleware.
@@ -199,19 +292,20 @@ class App:
                 Middleware callable.
         """
 
-        self.middlewares.append(middleware)
+        self.middlewares.append(
+            middleware,
+        )
 
+    def get_middlewares(
+        self,
+    ) -> list[Middleware]:
+        """
+        Retrieve registered middleware.
 
-def issubclass_safe(
-    cls: Any,
-    base: type,
-) -> bool:
-    """
-    Safely determine whether a class is a subclass
-    of another.
-    """
+        Returns:
+            Copy of registered middleware.
+        """
 
-    try:
-        return issubclass(cls, base)
-    except TypeError:
-        return False
+        return list(
+            self.middlewares,
+        )

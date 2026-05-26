@@ -1,42 +1,80 @@
 """
 Orbit Core Package
 
-Core runtime abstractions and foundational primitives
-used throughout the Orbit framework.
+Core runtime abstractions and foundational
+primitives used throughout the Orbit framework.
+
+Orbit Core provides the application runtime,
+routing system, dependency injection container,
+and framework contracts used by higher-level
+Orbit components.
 
 This package exposes the public API for:
 
 - Application lifecycle management
+- Route registration and matching
 - Dependency injection
-- Route registration
-- Core routing definitions
+- Route metadata definitions
+- Framework type contracts
 
 Exports:
     App:
-        Main application abstraction for Orbit.
+        Main application abstraction.
 
     Container:
-        Dependency injection container used for service management.
+        Dependency injection container.
 
     Scope:
-        Defines dependency lifecycle scopes.
+        Dependency lifecycle scope definition.
 
     RouteRegistry:
-        Stores and manages application routes.
+        Route registration and lookup system.
+
+    RouteMatch:
+        Successful route match result.
 
     RouteDefinition:
-        Represents a registered route definition.
+        Registered route metadata definition.
+
+    Handler:
+        Generic route handler contract.
+
+    Middleware:
+        Generic middleware contract.
+
+    DependencyProvider:
+        Dependency provider contract.
+
+    LifecycleHook:
+        Application lifecycle hook contract.
 """
 
 from .app import App
-from .container import Container, Scope
-from .routing import RouteRegistry
-from .types import RouteDefinition
+from .container import (
+    Container,
+    Scope,
+)
+from .routing import (
+    RouteMatch,
+    RouteRegistry,
+)
+from .types import (
+    DependencyProvider,
+    Handler,
+    LifecycleHook,
+    Middleware,
+    RouteDefinition,
+)
 
 __all__ = [
     "App",
     "Container",
     "Scope",
     "RouteRegistry",
+    "RouteMatch",
     "RouteDefinition",
+    "Handler",
+    "Middleware",
+    "DependencyProvider",
+    "LifecycleHook",
 ]
