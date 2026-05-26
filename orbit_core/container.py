@@ -1,17 +1,18 @@
-import inspect
-import sys
+"""
+Orbit Dependency Injection Container
+
+Provides lightweight dependency registration and
+resolution utilities for Orbit applications.
+"""
+
 from enum import Enum
 
 
 class Scope(Enum):
     """
-    Defines the lifecycle scope of a dependency.
-
-    Attributes:
-        SINGLETON: A single instance is created and reused globally.
-        REQUEST: A single instance is created per request context.
-        TRANSIENT: A new instance is created every time it is resolved.
+    Supported dependency lifecycle scopes.
     """
+
     SINGLETON = "singleton"
     REQUEST = "request"
     TRANSIENT = "transient"
@@ -19,102 +20,77 @@ class Scope(Enum):
 
 class Container:
     """
-    A simple dependency injection container.
+    Lightweight dependency injection container.
 
-    This container manages class registrations and resolves dependencies
-    based on their defined scope (singleton, request, or transient).
+    The container is responsible for:
+    - Dependency registration
+    - Dependency resolution
+    - Scope management
     """
 
     def __init__(self):
         """
-        Initialize the container.
-
-        Attributes:
-            _singletons (dict): Stores singleton instances.
-            _providers (dict): Maps classes to their registered scope.
+        Initialize a new dependency container.
         """
+
         self._singletons = {}
         self._providers = {}
 
-    def register(self, cls, scope=Scope.SINGLETON):
+    def register(
+        self,
+        cls,
+        scope: Scope = Scope.SINGLETON,
+    ) -> None:
         """
-        Register a class with a specific scope.
+        Register a dependency provider.
 
         Args:
-            cls (type): The class to register.
-            scope (Scope): The lifecycle scope of the class.
+            cls:
+                Dependency class.
+
+            scope:
+                Dependency lifecycle scope.
         """
+
         self._providers[cls] = scope
 
-    def resolve(self, cls, request_cache=None):
+    def resolve(
+        self,
+        cls,
+        request_cache=None,
+    ):
         """
-        Resolve an instance of the given class.
-
-        This method determines the scope of the class and creates or retrieves
-        an instance accordingly.
+        Resolve a dependency instance.
 
         Args:
-            cls (type): The class to resolve.
-            request_cache (dict, optional): Cache for request-scoped instances.
+            cls:
+                Dependency class.
+
+            request_cache:
+                Optional request-scoped cache.
 
         Returns:
-            object: An instance of the requested class.
+            Resolved dependency instance.
         """
-        print("RESOLVING:", cls)
 
-        scope = self._providers.get(cls)
-
-        if scope is None:
-            scope = Scope.TRANSIENT
-
-        print("SCOPE:", scope)
+        scope = self._providers.get(
+            cls,
+            Scope.SINGLETON,
+        )
 
         if scope == Scope.SINGLETON:
-            ...
-        elif scope == Scope.REQUEST:
-            ...
-        elif scope == Scope.TRANSIENT:
-            instance = self._create_instance(cls, request_cache)
-            print("CREATED INSTANCE:", instance)
-            return instance
+            if cls not in self._singletons:
+                self._singletons[cls] = cls()
 
-    def _create_instance(self, cls, request_cache):
-        """
-        Create an instance of a class by resolving its constructor dependencies.
+            return self._singletons[cls]
 
-        This method inspects the __init__ signature of the class and recursively
-        resolves all annotated dependencies.
+        if scope == Scope.REQUEST:
+            if request_cache is None:
+                request_cache = {}
 
-        Args:
-            cls (type): The class to instantiate.
-            request_cache (dict): Cache for request-scoped instances.
+            if cls not in request_cache:
+                request_cache[cls] = cls()
 
-        Returns:
-            object: A fully constructed instance of the class.
+            return request_cache[cls]
 
-        Raises:
-            Exception: If a constructor parameter lacks a type annotation.
-        """
-        sig = inspect.signature(cls.__init__)
-        kwargs = {}
-
-        for name, param in sig.parameters.items():
-            if name == "self":
-                continue
-
-            if param.kind in (param.VAR_POSITIONAL, param.VAR_KEYWORD):
-                continue
-
-            param_type = param.annotation
-
-            if isinstance(param_type, str):
-                module = sys.modules[cls.__module__]
-                param_type = getattr(module, param_type)
-
-            if param_type == inspect._empty:
-                raise Exception(f"Missing type annotation for {name} in {cls}")
-
-            if isinstance(param_type, type):
-                kwargs[name] = self.resolve(param_type, request_cache)
-
-        return cls(**kwargs)
+        return cls()

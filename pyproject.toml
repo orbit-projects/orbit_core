@@ -1,53 +1,42 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = [
+  "setuptools>=69",
+  "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 
 [project]
 name = "orbit-framework-core"
-version = "0.1.2"
-description = "Core routing and dependency injection system for Orbit"
+version = "0.2.0"
+description = "Core framework runtime for Orbit"
 readme = "README.md"
-requires-python = ">=3.11"
-
-authors = [
-    { name = "Pranav Manglik" }
-]
-
+requires-python = ">=3.12"
 license = { text = "MIT" }
 
-dependencies = [
-    "orbit-framework-types>=0.1.0"
+authors = [
+  { name = "Pranav Manglik" }
 ]
 
-keywords = ["orbit", "core", "di", "routing"]
+keywords = [
+  "orbit",
+  "framework",
+  "runtime",
+  "backend",
+]
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
-
-    "Intended Audience :: Developers",
-
-    "License :: OSI Approved :: MIT License",
-
-    "Operating System :: OS Independent",
-
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-
-    "Topic :: Software Development :: Libraries",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
 ]
+
+dependencies = [
+  "orbit-framework-types>=0.2.0",
+  "typing-extensions>=4.12.0",
+]
+
 
 [tool.setuptools.packages.find]
-where = ["."]
 include = ["orbit_core*"]
-
-
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "black",
-    "ruff"
-]

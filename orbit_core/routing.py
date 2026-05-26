@@ -1,38 +1,80 @@
-from typing import List
+"""
+Orbit Routing System
+
+Provides route registration and route lookup utilities
+for Orbit applications.
+"""
+
 from .types import RouteDefinition
 
 
 class RouteRegistry:
     """
-    A registry for storing and managing route definitions.
-
-    This class maintains a collection of RouteDefinition objects
-    and provides methods to add and retrieve them.
+    Stores and manages registered application routes.
     """
 
     def __init__(self):
         """
         Initialize an empty route registry.
-
-        Attributes:
-            routes (List[RouteDefinition]): A list to store registered routes.
         """
-        self.routes: List[RouteDefinition] = []
 
-    def add(self, route: RouteDefinition):
+        self._routes: list[RouteDefinition] = []
+
+    def add_route(self, route: RouteDefinition) -> None:
         """
-        Add a new route to the registry.
+        Register a new route definition.
 
         Args:
-            route (RouteDefinition): The route definition to be added.
-        """
-        self.routes.append(route)
+            route:
+                Route definition to register.
 
-    def get_all(self):
+        Raises:
+            ValueError:
+                If a duplicate route already exists.
+        """
+
+        existing = self.find_route(
+            method=route.method,
+            path=route.path,
+        )
+
+        if existing is not None:
+            raise ValueError(f"Route already exists: " f"{route.method} {route.path}")
+
+        self._routes.append(route)
+
+    def find_route(
+        self,
+        method: str,
+        path: str,
+    ) -> RouteDefinition | None:
+        """
+        Find a route matching method and path.
+
+        Args:
+            method:
+                HTTP method.
+
+            path:
+                Route path.
+
+        Returns:
+            Matching route definition if found,
+            otherwise None.
+        """
+
+        for route in self._routes:
+            if route.method == method and route.path == path:
+                return route
+
+        return None
+
+    def get_routes(self) -> list[RouteDefinition]:
         """
         Retrieve all registered routes.
 
         Returns:
-            List[RouteDefinition]: A list of all stored route definitions.
+            List of registered route definitions.
         """
-        return self.routes
+
+        return self._routes

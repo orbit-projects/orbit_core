@@ -1,18 +1,42 @@
 """
 Orbit Core Package
 
-This module provides the main application interface for the Orbit framework.
+Core runtime abstractions and foundational primitives
+used throughout the Orbit framework.
 
-It exposes the `App` class, which serves as the central object for:
-- Defining routes
-- Managing application state
-- Integrating with server and SSG systems
+This package exposes the public API for:
 
-Example:
-    >>> from orbit_core import App
-    >>> app = App()
+- Application lifecycle management
+- Dependency injection
+- Route registration
+- Core routing definitions
+
+Exports:
+    App:
+        Main application abstraction for Orbit.
+
+    Container:
+        Dependency injection container used for service management.
+
+    Scope:
+        Defines dependency lifecycle scopes.
+
+    RouteRegistry:
+        Stores and manages application routes.
+
+    RouteDefinition:
+        Represents a registered route definition.
 """
 
 from .app import App
+from .container import Container, Scope
+from .routing import RouteRegistry
+from .types import RouteDefinition
 
-__all__ = ["App"]
+__all__ = [
+    "App",
+    "Container",
+    "Scope",
+    "RouteRegistry",
+    "RouteDefinition",
+]

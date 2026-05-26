@@ -1,79 +1,101 @@
-from .types import RouteDefinition
-from .container import Container
+"""
+Orbit Application Core
+
+This module provides the main `App` class used to create
+and configure Orbit applications.
+
+The application core is responsible for:
+
+- Route registration
+- Middleware management
+- Dependency injection access
+- Application-level configuration
+
+Example:
+    app = App()
+
+    @app.get("/")
+    def home():
+        return {"message": "Hello Orbit"}
+"""
+
+from collections.abc import Callable
+from typing import Any
 import inspect
+
 from orbit_types import RequestModel
+
+from .container import Container
+from .routing import RouteRegistry
+from .types import RouteDefinition
 
 
 class App:
     """
     Core application class for the Orbit framework.
 
-    The `App` class is responsible for:
-    - Registering routes
-    - Managing middleware
-    - Holding application-level state
-    - Acting as the central entry point for Orbit applications
+    Responsibilities:
+    - Route registration
+    - Middleware management
+    - Application lifecycle coordination
+    - Dependency injection access
 
-    Example:
-        >>> from orbit_core import App
-        >>> app = App()
-        >>>
-        >>> @app.route("/")
-        >>> def home():
-        >>>     return {"message": "Hello Orbit"}
+    Attributes:
+        routes:
+            Registered application routes.
+
+        container:
+            Dependency injection container.
+
+        middlewares:
+            Registered middleware handlers.
+
+        debug:
+            Debug mode flag.
     """
 
-    def __init__(self):
+    def __init__(self, debug: bool = False):
         """
         Initialize a new Orbit application instance.
-
-        Attributes:
-            routes (list): Registered route definitions.
-            container (Container): Dependency injection container.
-            middlewares (list): List of middleware functions.
-            debug (bool): Debug mode flag.
         """
-        self.routes = []
-        self.container = Container()
-        self.middlewares = []
-        self.debug = True
 
-    def route(self, path: str, method: str = "GET", ssg: bool = False):
+        self.routes = RouteRegistry()
+        self.container = Container()
+        self.middlewares: list[Callable[..., Any]] = []
+        self.debug = debug
+
+    def route(
+        self,
+        path: str,
+        method: str = "GET",
+    ) -> Callable[..., Any]:
         """
         Register a route with the application.
 
-        This decorator binds a function to a specific route path and HTTP method.
-        It also inspects the function signature to automatically detect:
-
-        - Request model (if provided as a parameter)
-        - Response model (from return annotation)
-
         Args:
-            path (str): URL path (e.g. "/about").
-            method (str, optional): HTTP method. Defaults to "GET".
-            ssg (bool, optional): Whether this route should be statically generated.
+            path:
+                Route URL path.
+
+            method:
+                HTTP method used for the route.
 
         Returns:
-            Callable: A decorator that registers the route handler.
-
-        Example:
-            >>> @app.route("/user")
-            >>> def get_user(request: RequestModel):
-            >>>     return {"id": 1}
-
-        Example (SSG):
-            >>> @app.route("/blog", ssg=True)
-            >>> def blog():
-            >>>     return {"posts": []}
+            Route decorator.
         """
-        def decorator(func):
+
+        def decorator(
+            func: Callable[..., Any],
+        ) -> Callable[..., Any]:
             sig = inspect.signature(func)
 
             request_model = None
             response_model = sig.return_annotation
 
             for param in sig.parameters.values():
-                if issubclass_safe(param.annotation, RequestModel):
+                if issubclass_safe(
+                    param.annotation,
+                    RequestModel,
+                ):
                     request_model = param.annotation
 
             route_def = RouteDefinition(
@@ -84,51 +106,112 @@ class App:
                 response_model=response_model,
             )
 
-            route_def.ssg = ssg
-            
-            self.routes.append(route_def)
+            self.routes.add_route(route_def)
 
             return func
 
         return decorator
 
-    def get_routes(self):
+    def get(
+        self,
+        path: str,
+    ) -> Callable[..., Any]:
+        """
+        Register a GET route.
+        """
+
+        return self.route(
+            path=path,
+            method="GET",
+        )
+
+    def post(
+        self,
+        path: str,
+    ) -> Callable[..., Any]:
+        """
+        Register a POST route.
+        """
+
+        return self.route(
+            path=path,
+            method="POST",
+        )
+
+    def put(
+        self,
+        path: str,
+    ) -> Callable[..., Any]:
+        """
+        Register a PUT route.
+        """
+
+        return self.route(
+            path=path,
+            method="PUT",
+        )
+
+    def delete(
+        self,
+        path: str,
+    ) -> Callable[..., Any]:
+        """
+        Register a DELETE route.
+        """
+
+        return self.route(
+            path=path,
+            method="DELETE",
+        )
+
+    def patch(
+        self,
+        path: str,
+    ) -> Callable[..., Any]:
+        """
+        Register a PATCH route.
+        """
+
+        return self.route(
+            path=path,
+            method="PATCH",
+        )
+
+    def get_routes(self) -> list[RouteDefinition]:
         """
         Retrieve all registered routes.
 
         Returns:
-            list[RouteDefinition]: List of route definitions.
+            List of registered route definitions.
         """
-        return self.routes
 
-    def add_middleware(self, middleware):
+        return self.routes.get_routes()
+
+    def add_middleware(
+        self,
+        middleware: Callable[..., Any],
+    ) -> None:
         """
-        Add a middleware to the application.
-
-        Middleware functions are executed during request handling
-        and can be used for logging, authentication, etc.
+        Register application middleware.
 
         Args:
-            middleware (Callable): Middleware function.
+            middleware:
+                Middleware callable.
         """
+
         self.middlewares.append(middleware)
 
 
-def issubclass_safe(cls, base):
+def issubclass_safe(
+    cls: Any,
+    base: type,
+) -> bool:
     """
-    Safely check if a class is a subclass of another.
-
-    This function prevents runtime errors when dealing with
-    annotations that may not be valid classes.
-
-    Args:
-        cls: The class to check.
-        base: The base class.
-
-    Returns:
-        bool: True if `cls` is a subclass of `base`, otherwise False.
+    Safely determine whether a class is a subclass
+    of another.
     """
+
     try:
         return issubclass(cls, base)
-    except Exception:
+    except TypeError:
         return False

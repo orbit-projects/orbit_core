@@ -1,35 +1,45 @@
-from typing import Callable, Type
+"""
+Orbit Core Types
+
+Shared type definitions and structured metadata models
+used throughout the Orbit core runtime.
+"""
+
+from dataclasses import dataclass
+from collections.abc import Callable
+from typing import Any
 
 
+@dataclass
 class RouteDefinition:
     """
-    Represents a route configuration in the application.
+    Represents a registered application route.
 
-    This class encapsulates all necessary metadata required to define
-    an HTTP route, including its path, method, handler function,
-    and optional request/response models.
+    A route definition contains all metadata required
+    to register and execute an application endpoint.
+
+    Attributes:
+        path:
+            URL path for the route.
+
+        method:
+            HTTP method associated with the route.
+
+        handler:
+            Route handler function.
+
+        request_model:
+            Optional request model extracted from the
+            handler signature.
+
+        response_model:
+            Optional response model extracted from the
+            handler return annotation.
     """
 
-    def __init__(
-        self,
-        path: str,
-        method: str,
-        handler: Callable,
-        request_model: Type | None,
-        response_model: Type | None,
-    ):
-        """
-        Initialize a route definition.
+    path: str
+    method: str
+    handler: Callable[..., Any]
 
-        Args:
-            path (str): The URL path for the route.
-            method (str): The HTTP method (e.g., GET, POST).
-            handler (Callable): The function that handles the request.
-            request_model (Type | None): The expected request data model (if any).
-            response_model (Type | None): The expected response data model (if any).
-        """
-        self.path = path
-        self.method = method
-        self.handler = handler
-        self.request_model = request_model
-        self.response_model = response_model
+    request_model: type | None = None
+    response_model: type | None = None
